@@ -65,167 +65,7 @@
         }
         
         .form-grid {
-            displayResults(systemScores);
-            
-            try {
-                await sendResultsToEmail(systemScores);
-                showMessage('success', 'Результаты успешно отправлены! Ольга получила ваши данные и свяжется с вами в ближайшее время.');
-            } catch (error) {
-                console.error('Ошибка отправки:', error);
-                showMessage('error', 'Произошла ошибка при отправке. Пожалуйста, попробуйте еще раз или свяжитесь напрямую через Telegram/WhatsApp.');
-            }
-            
-            btn.disabled = false;
-            spinner.style.display = 'none';
-            btnText.textContent = '🧮 Подсчитать результаты';
-        }
-        
-        function getFieldName(field) {
-            const fieldNames = {
-                'surname': 'Фамилия',
-                'name': 'Имя', 
-                'year': 'Год рождения',
-                'phone': 'Телефон'
-            };
-            return fieldNames[field] || field;
-        }
-        
-        function displayResults(scores) {
-            const resultsBody = document.getElementById('resultsBody');
-            resultsBody.innerHTML = '';
-            
-            scores.forEach((score, index) => {
-                const evaluation = getEvaluation(score, index);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${systemNames[index]}</td>
-                    <td><strong>${score}</strong></td>
-                    <td class="status-${evaluation.class}">${evaluation.text}</td>
-                `;
-                resultsBody.appendChild(row);
-            });
-            
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        function getEvaluation(score, systemIndex) {
-            const criteria = evaluationCriteria[systemIndex];
-            
-            if (score >= criteria.veryGood[0] && score <= criteria.veryGood[1]) {
-                return { text: 'Очень хорошо', class: 'very-good' };
-            } else if (score >= criteria.good[0] && score <= criteria.good[1]) {
-                return { text: 'Хорошо', class: 'good' };
-            } else if (score >= criteria.satisfactory[0] && score <= criteria.satisfactory[1]) {
-                return { text: 'Удовлетворительно', class: 'satisfactory' };
-            } else {
-                return { text: 'Неудовлетворительно', class: 'unsatisfactory' };
-            }
-        }
-        
-        async function sendResultsToEmail(scores) {
-            // Если EmailJS не настроен, просто логируем
-            if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
-                console.log('EmailJS не настроен. Результаты сохранены локально.');
-                return Promise.resolve();
-            }
-            
-            const personalInfo = {
-                surname: document.getElementById('surname').value,
-                name: document.getElementById('name').value,
-                patronymic: document.getElementById('patronymic').value,
-                year: document.getElementById('year').value,
-                phone: document.getElementById('phone').value
-            };
-            
-            const results = scores.map((score, index) => ({
-                system: systemNames[index],
-                score: score,
-                evaluation: getEvaluation(score, index).text
-            }));
-            
-            let resultsText = '';
-            let problemSystems = [];
-            let satisfactorySystems = [];
-            let goodSystems = [];
-            
-            results.forEach(result => {
-                resultsText += `${result.system}: ${result.score} баллов (${result.evaluation})\n`;
-                
-                if (result.evaluation === 'Неудовлетворительно') {
-                    problemSystems.push(result.system);
-                } else if (result.evaluation === 'Удовлетворительно') {
-                    satisfactorySystems.push(result.system);
-                } else {
-                    goodSystems.push(result.system);
-                }
-            });
-            
-            let analysis = '\n=== АНАЛИЗ РЕЗУЛЬТАТОВ ===\n';
-            if (problemSystems.length > 0) {
-                analysis += `⚠️ ТРЕБУЮТ ВНИМАНИЯ (${problemSystems.length} систем):\n${problemSystems.map(s => '- ' + s).join('\n')}\n\n`;
-            }
-            if (satisfactorySystems.length > 0) {
-                analysis += `⚡ Удовлетворительное состояние (${satisfactorySystems.length} систем):\n${satisfactorySystems.map(s => '- ' + s).join('\n')}\n\n`;
-            }
-            if (goodSystems.length > 0) {
-                analysis += `✅ Хорошее/Отличное состояние (${goodSystems.length} систем):\n${goodSystems.map(s => '- ' + s).join('\n')}\n\n`;
-            }
-            
-            const templateParams = {
-                surname: personalInfo.surname,
-                name: personalInfo.name,
-                patronymic: personalInfo.patronymic || 'не указано',
-                year: personalInfo.year,
-                phone: personalInfo.phone,
-                date: new Date().toLocaleDateString('ru-RU'),
-                time: new Date().toLocaleTimeString('ru-RU'),
-                results: resultsText,
-                analysis: analysis,
-                total_problems: problemSystems.length,
-                total_satisfactory: satisfactorySystems.length,
-                total_good: goodSystems.length
-            };
-            
-            return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-        }
-        
-        function showMessage(type, text) {
-            const successMsg = document.getElementById('successMessage');
-            const errorMsg = document.getElementById('errorMessage');
-            
-            successMsg.style.display = 'none';
-            errorMsg.style.display = 'none';
-            
-            if (type === 'success') {
-                successMsg.textContent = text;
-                successMsg.style.display = 'block';
-            } else {
-                errorMsg.textContent = text;
-                errorMsg.style.display = 'block';
-            }
-            
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        function initializeDateSelectors() {
-            const yearSelect = document.getElementById('year');
-            const currentYear = new Date().getFullYear();
-            for (let i = currentYear; i >= 1920; i--) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = i;
-                yearSelect.appendChild(option);
-            }
-        }
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeDateSelectors();
-            createQuestionnaire();
-        });
-    </script>
-</body>
-</html>: grid;
+            display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
         }
@@ -512,6 +352,7 @@
             .content { padding: 20px; }
             .form-grid { grid-template-columns: 1fr; }
             .systems-grid { grid-template-columns: 1fr; }
+            .contact-buttons { flex-direction: column; align-items: center; }
         }
     </style>
 </head>
@@ -662,16 +503,17 @@
     </div>
 
     <script>
-        // ВАЖНО: Замените эти значения на ваши из EmailJS
+        // Конфигурация EmailJS - замените на ваши ключи
         const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';
         const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
         const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
         
-        // Инициализация EmailJS (только если ключи настроены)
+        // Инициализация EmailJS
         if (EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY') {
             emailjs.init(EMAILJS_PUBLIC_KEY);
         }
         
+        // Вопросы теста с привязкой к системам организма
         const questions = [
             { text: "Недостаток энергии, упадок сил", systems: [1, 3, 4, 5, 8] },
             { text: "Частые заболевания (более 2 раз в год)", systems: [5, 10] },
@@ -724,6 +566,7 @@
             { text: "Большие поры на коже, повышенное салоотделение, угри", systems: [7, 10] }
         ];
         
+        // Названия систем организма
         const systemNames = [
             "Система переваривания и усвоения пищи",
             "Желудочно-кишечный тракт", 
@@ -737,6 +580,7 @@
             "Кожа"
         ];
         
+        // Критерии оценки для каждой системы
         const evaluationCriteria = [
             { veryGood: [0, 2], good: [3, 4], satisfactory: [5, 9], unsatisfactory: 10 },
             { veryGood: [0, 2], good: [3, 4], satisfactory: [5, 9], unsatisfactory: 10 },
@@ -750,8 +594,11 @@
             { veryGood: [0, 1], good: [2, 3], satisfactory: [4, 6], unsatisfactory: 7 }
         ];
         
+        // Создание вопросов теста
         function createQuestionnaire() {
             const questionnaire = document.getElementById('questionnaire');
+            questionnaire.innerHTML = '';
+            
             questions.forEach((question, index) => {
                 const questionDiv = document.createElement('div');
                 questionDiv.className = 'question-item';
@@ -763,7 +610,34 @@
             });
         }
         
+        // Заполнение выпадающего списка годов
+        function initializeDateSelectors() {
+            const yearSelect = document.getElementById('year');
+            yearSelect.innerHTML = '<option value="">Выберите год</option>';
+            
+            const currentYear = new Date().getFullYear();
+            for (let i = currentYear; i >= 1920; i--) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                yearSelect.appendChild(option);
+            }
+        }
+        
+        // Получение названия поля для ошибки
+        function getFieldName(field) {
+            const fieldNames = {
+                'surname': 'Фамилия',
+                'name': 'Имя', 
+                'year': 'Год рождения',
+                'phone': 'Телефон'
+            };
+            return fieldNames[field] || field;
+        }
+        
+        // Основная функция подсчета результатов
         async function calculateResults() {
+            // Проверка заполнения обязательных полей
             const requiredFields = ['surname', 'name', 'year', 'phone'];
             for (let field of requiredFields) {
                 const fieldValue = document.getElementById(field).value;
@@ -773,6 +647,7 @@
                 }
             }
             
+            // Показать индикатор загрузки
             const btn = document.querySelector('.calculate-btn');
             const spinner = btn.querySelector('.loading-spinner');
             const btnText = btn.querySelector('.btn-text');
@@ -781,6 +656,7 @@
             spinner.style.display = 'inline-block';
             btnText.textContent = 'Обработка результатов...';
             
+            // Подсчет баллов по системам
             const systemScores = new Array(10).fill(0);
             
             questions.forEach((question, index) => {
@@ -792,4 +668,166 @@
                 }
             });
             
-            display
+            // Отображение результатов
+            displayResults(systemScores);
+            
+            // Попытка отправки email
+            try {
+                await sendResultsToEmail(systemScores);
+                showMessage('success', 'Результаты успешно отправлены! Ольга получила ваши данные и свяжется с вами в ближайшее время.');
+            } catch (error) {
+                console.error('Ошибка отправки:', error);
+                showMessage('error', 'Произошла ошибка при отправке. Пожалуйста, попробуйте еще раз или свяжитесь напрямую через Telegram/WhatsApp.');
+            }
+            
+            // Скрыть индикатор загрузки
+            btn.disabled = false;
+            spinner.style.display = 'none';
+            btnText.textContent = '🧮 Подсчитать результаты';
+        }
+        
+        // Отображение результатов в таблице
+        function displayResults(scores) {
+            const resultsBody = document.getElementById('resultsBody');
+            resultsBody.innerHTML = '';
+            
+            scores.forEach((score, index) => {
+                const evaluation = getEvaluation(score, index);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${systemNames[index]}</td>
+                    <td><strong>${score}</strong></td>
+                    <td class="status-${evaluation.class}">${evaluation.text}</td>
+                `;
+                resultsBody.appendChild(row);
+            });
+            
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Определение оценки состояния системы
+        function getEvaluation(score, systemIndex) {
+            const criteria = evaluationCriteria[systemIndex];
+            
+            if (score >= criteria.veryGood[0] && score <= criteria.veryGood[1]) {
+                return { text: 'Очень хорошо', class: 'very-good' };
+            } else if (score >= criteria.good[0] && score <= criteria.good[1]) {
+                return { text: 'Хорошо', class: 'good' };
+            } else if (score >= criteria.satisfactory[0] && score <= criteria.satisfactory[1]) {
+                return { text: 'Удовлетворительно', class: 'satisfactory' };
+            } else {
+                return { text: 'Неудовлетворительно', class: 'unsatisfactory' };
+            }
+        }
+        
+        // Отправка результатов через EmailJS
+        async function sendResultsToEmail(scores) {
+            // Если EmailJS не настроен, пропускаем отправку
+            if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
+                console.log('EmailJS не настроен. Результаты сохранены локально.');
+                return Promise.resolve();
+            }
+            
+            const personalInfo = {
+                surname: document.getElementById('surname').value,
+                name: document.getElementById('name').value,
+                patronymic: document.getElementById('patronymic').value,
+                year: document.getElementById('year').value,
+                phone: document.getElementById('phone').value
+            };
+            
+            const results = scores.map((score, index) => ({
+                system: systemNames[index],
+                score: score,
+                evaluation: getEvaluation(score, index).text
+            }));
+            
+            // Формирование текста результатов
+            let resultsText = '';
+            let problemSystems = [];
+            let satisfactorySystems = [];
+            let goodSystems = [];
+            
+            results.forEach(result => {
+                resultsText += `${result.system}: ${result.score} баллов (${result.evaluation})\n`;
+                
+                if (result.evaluation === 'Неудовлетворительно') {
+                    problemSystems.push(result.system);
+                } else if (result.evaluation === 'Удовлетворительно') {
+                    satisfactorySystems.push(result.system);
+                } else {
+                    goodSystems.push(result.system);
+                }
+            });
+            
+            // Анализ результатов
+            let analysis = '\n=== АНАЛИЗ РЕЗУЛЬТАТОВ ===\n';
+            if (problemSystems.length > 0) {
+                analysis += `⚠️ ТРЕБУЮТ ВНИМАНИЯ (${problemSystems.length} систем):\n${problemSystems.map(s => '- ' + s).join('\n')}\n\n`;
+            }
+            if (satisfactorySystems.length > 0) {
+                analysis += `⚡ Удовлетворительное состояние (${satisfactorySystems.length} систем):\n${satisfactorySystems.map(s => '- ' + s).join('\n')}\n\n`;
+            }
+            if (goodSystems.length > 0) {
+                analysis += `✅ Хорошее/Отличное состояние (${goodSystems.length} систем):\n${goodSystems.map(s => '- ' + s).join('\n')}\n\n`;
+            }
+            
+            // Параметры для шаблона EmailJS
+            const templateParams = {
+                surname: personalInfo.surname,
+                name: personalInfo.name,
+                patronymic: personalInfo.patronymic || 'не указано',
+                year: personalInfo.year,
+                phone: personalInfo.phone,
+                date: new Date().toLocaleDateString('ru-RU'),
+                time: new Date().toLocaleTimeString('ru-RU'),
+                results: resultsText,
+                analysis: analysis,
+                total_problems: problemSystems.length,
+                total_satisfactory: satisfactorySystems.length,
+                total_good: goodSystems.length
+            };
+            
+            // Отправка через EmailJS
+            return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+        }
+        
+        // Показ сообщений пользователю
+        function showMessage(type, text) {
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+            
+            // Скрыть все сообщения
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+            
+            // Показать нужное сообщение
+            if (type === 'success') {
+                successMsg.textContent = text;
+                successMsg.style.display = 'block';
+            } else {
+                errorMsg.textContent = text;
+                errorMsg.style.display = 'block';
+            }
+            
+            // Прокрутить к сообщению
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Инициализация теста здоровья...');
+            
+            // Заполнение годов рождения
+            initializeDateSelectors();
+            
+            // Создание вопросов теста
+            createQuestionnaire();
+            
+            console.log('Тест готов к использованию!');
+            console.log(`Создано ${questions.length} вопросов`);
+        });
+    </script>
+</body>
+</html>

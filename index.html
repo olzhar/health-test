@@ -739,6 +739,19 @@
                 evaluation: getEvaluation(score, index).text
             }));
             
+            // Сбор отмеченных вопросов
+            let checkedQuestions = [];
+            questions.forEach((question, index) => {
+                const checkbox = document.getElementById(`q${index}`);
+                if (checkbox && checkbox.checked) {
+                    checkedQuestions.push(`✓ ${question.text}`);
+                }
+            });
+            
+            const checkedQuestionsText = checkedQuestions.length > 0 
+                ? checkedQuestions.join('\n') 
+                : 'Нет отмеченных симптомов';
+            
             // Формирование текста результатов
             let resultsText = '';
             let problemSystems = [];
@@ -777,6 +790,8 @@
                 time: new Date().toLocaleTimeString('ru-RU'),
                 results: resultsText,
                 analysis: analysis,
+                checked_questions: checkedQuestionsText,
+                total_checked: checkedQuestions.length,
                 total_problems: problemSystems.length,
                 total_satisfactory: satisfactorySystems.length,
                 total_good: goodSystems.length
@@ -824,5 +839,3 @@
     </script>
 </body>
 </html>
-
-

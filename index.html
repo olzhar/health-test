@@ -368,26 +368,14 @@
                 <h3>📋 Информация о Вас</h3>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label>Фамилия:</label>
-                        <input type="text" id="surname" required>
-                    </div>
-                    <div class="form-group">
                         <label>Имя:</label>
                         <input type="text" id="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Отчество:</label>
-                        <input type="text" id="patronymic">
                     </div>
                     <div class="form-group">
                         <label>Год рождения:</label>
                         <select id="year" required>
                             <option value="">Выберите год</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Контактный телефон:</label>
-                        <input type="tel" id="phone" required>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
@@ -400,16 +388,16 @@
             
             <div class="systems-info">
                 <h3>🔬 Системы организма</h3>
-                <p style="margin-bottom: 20px;">Узнайте о состоянии основных систем/органов организма:</p>
+                <p style="margin-bottom: 20px;">Столбцы в тесте обозначают основные системы/органы организма:</p>
                 <div class="systems-grid">
                     <div class="system-item">
                         <strong>1. Система переваривания и усвоения пищи</strong> - ферментные системы, расщепляющие пищу на вещества, которые могут всасываться через кишечник в кровь.
                     </div>
                     <div class="system-item">
-                        <strong>2. Желудочно-кишечный тракт</strong> - осуществляет транспорт пищевого комка и эвакуацию токсинов и балластных веществ.
+                        <strong>2. Желудочно-кишечный тракт</strong> - осуществляет транспорт пищевого комка и эвакуацию шлаков и балластных веществ.
                     </div>
                     <div class="system-item">
-                        <strong>3. Сердечно-сосудистая система</strong> - осуществляет кровоснабжение всех органов и тканей, доставляет к ним кислород и питательные вещества и выводит продукты обмена.
+                        <strong>3. Сердечно-сосудистая система</strong> - осуществляет транспорт питательных веществ, кислорода и воды по всем системам организма.
                     </div>
                     <div class="system-item">
                         <strong>4. Нервная система</strong> - обеспечивает генерацию управляющей информации в отношении всех систем организма.
@@ -633,10 +621,8 @@
         // Получение названия поля для ошибки
         function getFieldName(field) {
             const fieldNames = {
-                'surname': 'Фамилия',
                 'name': 'Имя', 
-                'year': 'Год рождения',
-                'phone': 'Телефон'
+                'year': 'Год рождения'
             };
             return fieldNames[field] || field;
         }
@@ -644,7 +630,7 @@
         // Основная функция подсчета результатов
         async function calculateResults() {
             // Проверка заполнения обязательных полей
-            const requiredFields = ['surname', 'name', 'year', 'phone'];
+            const requiredFields = ['name', 'year'];
             for (let field of requiredFields) {
                 const fieldValue = document.getElementById(field).value;
                 if (!fieldValue || fieldValue.trim() === '') {
@@ -743,11 +729,8 @@
             }
             
             const personalInfo = {
-                surname: document.getElementById('surname').value,
                 name: document.getElementById('name').value,
-                patronymic: document.getElementById('patronymic').value,
-                year: document.getElementById('year').value,
-                phone: document.getElementById('phone').value
+                year: document.getElementById('year').value
             };
             
             const results = scores.map((score, index) => ({
@@ -788,11 +771,8 @@
             
             // Параметры для шаблона EmailJS
             const templateParams = {
-                surname: personalInfo.surname,
                 name: personalInfo.name,
-                patronymic: personalInfo.patronymic || 'не указано',
                 year: personalInfo.year,
-                phone: personalInfo.phone,
                 date: new Date().toLocaleDateString('ru-RU'),
                 time: new Date().toLocaleTimeString('ru-RU'),
                 results: resultsText,
@@ -844,5 +824,3 @@
     </script>
 </body>
 </html>
-
-

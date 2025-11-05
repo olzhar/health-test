@@ -211,6 +211,37 @@
             display: none;
         }
         
+        .biological-age {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .biological-age h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .age-display {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .age-comparison {
+            font-size: 1.2em;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
         .results-table {
             width: 100%;
             border-collapse: collapse;
@@ -353,6 +384,7 @@
             .form-grid { grid-template-columns: 1fr; }
             .systems-grid { grid-template-columns: 1fr; }
             .contact-buttons { flex-direction: column; align-items: center; }
+            .age-display { font-size: 2em; }
         }
     </style>
 </head>
@@ -449,6 +481,13 @@
                 <h3 style="color: #4facfe; text-align: center; margin-bottom: 20px;">
                     📊 Этап 2. Результаты теста
                 </h3>
+                
+                <div class="biological-age" id="biologicalAge">
+                    <h3>🧬 Ваш биологический возраст</h3>
+                    <div class="age-display" id="ageDisplay">-- лет</div>
+                    <div class="age-comparison" id="ageComparison"></div>
+                </div>
+                
                 <table class="results-table" id="resultsTable">
                     <thead>
                         <tr>
@@ -507,7 +546,7 @@
             emailjs.init(EMAILJS_PUBLIC_KEY);
         }
         
-        // Вопросы теста с привязкой к системам организма
+        // Вопросы теста
         const questions = [
             { text: "Недостаток энергии, упадок сил", systems: [1, 3, 4, 5, 8] },
             { text: "Частые заболевания (более 2 раз в год)", systems: [5, 10] },
@@ -560,7 +599,6 @@
             { text: "Большие поры на коже, повышенное салоотделение, угри", systems: [7, 10] }
         ];
         
-        // Названия систем организма
         const systemNames = [
             "Система переваривания и усвоения пищи",
             "Желудочно-кишечный тракт", 
@@ -574,7 +612,6 @@
             "Кожа"
         ];
         
-        // Критерии оценки для каждой системы
         const evaluationCriteria = [
             { veryGood: [0, 2], good: [3, 4], satisfactory: [5, 9], unsatisfactory: 10 },
             { veryGood: [0, 2], good: [3, 4], satisfactory: [5, 9], unsatisfactory: 10 },
@@ -588,7 +625,6 @@
             { veryGood: [0, 1], good: [2, 3], satisfactory: [4, 6], unsatisfactory: 7 }
         ];
         
-        // Создание вопросов теста
         function createQuestionnaire() {
             const questionnaire = document.getElementById('questionnaire');
             questionnaire.innerHTML = '';
@@ -604,7 +640,6 @@
             });
         }
         
-        // Заполнение выпадающего списка годов
         function initializeDateSelectors() {
             const yearSelect = document.getElementById('year');
             yearSelect.innerHTML = '<option value="">Выберите год</option>';
@@ -618,7 +653,6 @@
             }
         }
         
-        // Получение названия поля для ошибки
         function getFieldName(field) {
             const fieldNames = {
                 'name': 'Имя', 
@@ -627,9 +661,7 @@
             return fieldNames[field] || field;
         }
         
-        // Основная функция подсчета результатов
         async function calculateResults() {
-            // Проверка заполнения обязательных полей
             const requiredFields = ['name', 'year'];
             for (let field of requiredFields) {
                 const fieldValue = document.getElementById(field).value;
@@ -639,14 +671,12 @@
                 }
             }
             
-            // Проверка согласия на обработку персональных данных
             const privacyConsent = document.getElementById('privacy-consent');
             if (!privacyConsent.checked) {
                 alert('Для прохождения теста необходимо дать согласие на обработку персональных данных');
                 return;
             }
             
-            // Показать индикатор загрузки
             const btn = document.querySelector('.calculate-btn');
             const spinner = btn.querySelector('.loading-spinner');
             const btnText = btn.querySelector('.btn-text');
@@ -655,7 +685,6 @@
             spinner.style.display = 'inline-block';
             btnText.textContent = 'Обработка результатов...';
             
-            // Подсчет баллов по системам
             const systemScores = new Array(10).fill(0);
             
             questions.forEach((question, index) => {
@@ -667,10 +696,8 @@
                 }
             });
             
-            // Отображение результатов
             displayResults(systemScores);
             
-            // Попытка отправки email
             try {
                 await sendResultsToEmail(systemScores);
                 showMessage('success', 'Результаты успешно обработаны! Теперь вы можете записаться на бесплатную консультацию.');
@@ -679,13 +706,96 @@
                 showMessage('success', 'Результаты обработаны! Теперь вы можете записаться на бесплатную консультацию.');
             }
             
-            // Скрыть индикатор загрузки
             btn.disabled = false;
             spinner.style.display = 'none';
             btnText.textContent = '🧮 Подсчитать результаты';
         }
         
-        // Отображение результатов в таблице
+        function calculateChronologicalAge() {
+            const birthYear = parseInt(document.getElementById('year').value);
+            const currentYear = new Date().getFullYear();
+            return currentYear - birthYear;
+        }
+        
+        function calculateBiologicalAge(scores, chronologicalAge) {
+            let totalScore = 0;
+            let maxScore = 0;
+            
+            scores.forEach((score, index) => {
+                totalScore += score;
+                const criteria = evaluationCriteria[index];
+                maxScore += criteria.unsatisfactory;
+            });
+            
+            const healthPercentage = (totalScore / maxScore) * 100;
+            
+            let ageModifier = 0;
+            
+            if (healthPercentage <= 10) {
+                ageModifier = -Math.floor(Math.random() * 6) - 5;
+            } else if (healthPercentage <= 25) {
+                ageModifier = -Math.floor(Math.random() * 4) - 2;
+            } else if (healthPercentage <= 40) {
+                ageModifier = Math.floor(Math.random() * 5) - 2;
+            } else if (healthPercentage <= 60) {
+                ageModifier = Math.floor(Math.random() * 5) + 3;
+            } else {
+                ageModifier = Math.floor(Math.random() * 8) + 8;
+            }
+            
+            let biologicalAge = chronologicalAge + ageModifier;
+            biologicalAge = Math.max(18, Math.min(100, biologicalAge));
+            
+            return biologicalAge;
+        }
+        
+        function getAgeWord(number) {
+            const lastDigit = number % 10;
+            const lastTwoDigits = number % 100;
+            
+            if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
+                return 'лет';
+            }
+            
+            if (lastDigit === 1) {
+                return 'год';
+            }
+            
+            if (lastDigit >= 2 && lastDigit <= 4) {
+                return 'года';
+            }
+            
+            return 'лет';
+        }
+        
+        function displayBiologicalAge(biologicalAge, chronologicalAge) {
+            const ageDisplay = document.getElementById('ageDisplay');
+            const ageComparison = document.getElementById('ageComparison');
+            
+            ageDisplay.textContent = `${biologicalAge} ${getAgeWord(biologicalAge)}`;
+            
+            const difference = Math.abs(biologicalAge - chronologicalAge);
+            let comparisonText = '';
+            
+            if (biologicalAge < chronologicalAge) {
+                if (difference >= 5) {
+                    comparisonText = `🎉 Отлично! Ваш биологический возраст на ${difference} ${getAgeWord(difference)} меньше паспортного (${chronologicalAge} ${getAgeWord(chronologicalAge)})!`;
+                } else {
+                    comparisonText = `😊 Хорошо! Ваш биологический возраст на ${difference} ${getAgeWord(difference)} меньше паспортного (${chronologicalAge} ${getAgeWord(chronologicalAge)})`;
+                }
+            } else if (biologicalAge === chronologicalAge) {
+                comparisonText = `✅ Ваш биологический возраст соответствует паспортному (${chronologicalAge} ${getAgeWord(chronologicalAge)})`;
+            } else {
+                if (difference <= 5) {
+                    comparisonText = `⚠️ Ваш биологический возраст на ${difference} ${getAgeWord(difference)} больше паспортного (${chronologicalAge} ${getAgeWord(chronologicalAge)}). Рекомендуем обратить внимание на здоровье.`;
+                } else {
+                    comparisonText = `🚨 Ваш биологический возраст на ${difference} ${getAgeWord(difference)} больше паспортного (${chronologicalAge} ${getAgeWord(chronologicalAge)}). Необходимо изменить образ жизни и получить консультацию специалиста.`;
+                }
+            }
+            
+            ageComparison.textContent = comparisonText;
+        }
+        
         function displayResults(scores) {
             const resultsBody = document.getElementById('resultsBody');
             resultsBody.innerHTML = '';
@@ -701,11 +811,14 @@
                 resultsBody.appendChild(row);
             });
             
+            const chronologicalAge = calculateChronologicalAge();
+            const biologicalAge = calculateBiologicalAge(scores, chronologicalAge);
+            displayBiologicalAge(biologicalAge, chronologicalAge);
+            
             document.getElementById('results').style.display = 'block';
             document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         }
         
-        // Определение оценки состояния системы
         function getEvaluation(score, systemIndex) {
             const criteria = evaluationCriteria[systemIndex];
             
@@ -720,9 +833,7 @@
             }
         }
         
-        // Отправка результатов через EmailJS
         async function sendResultsToEmail(scores) {
-            // Если EmailJS не настроен, пропускаем отправку
             if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
                 console.log('EmailJS не настроен. Результаты сохранены локально.');
                 return Promise.resolve();
@@ -739,7 +850,10 @@
                 evaluation: getEvaluation(score, index).text
             }));
             
-            // Сбор отмеченных вопросов
+            const chronologicalAge = calculateChronologicalAge();
+            const biologicalAge = calculateBiologicalAge(scores, chronologicalAge);
+            const ageDifference = biologicalAge - chronologicalAge;
+            
             let checkedQuestions = [];
             questions.forEach((question, index) => {
                 const checkbox = document.getElementById(`q${index}`);
@@ -752,7 +866,6 @@
                 ? checkedQuestions.join('\n') 
                 : 'Нет отмеченных симптомов';
             
-            // Формирование текста результатов
             let resultsText = '';
             let problemSystems = [];
             let satisfactorySystems = [];
@@ -770,8 +883,9 @@
                 }
             });
             
-            // Анализ результатов
             let analysis = '\n=== АНАЛИЗ РЕЗУЛЬТАТОВ ===\n';
+            analysis += `Биологический возраст: ${biologicalAge} лет (паспортный: ${chronologicalAge} лет, разница: ${ageDifference > 0 ? '+' : ''}${ageDifference} лет)\n\n`;
+            
             if (problemSystems.length > 0) {
                 analysis += `⚠️ ТРЕБУЮТ ВНИМАНИЯ (${problemSystems.length} систем):\n${problemSystems.map(s => '- ' + s).join('\n')}\n\n`;
             }
@@ -782,7 +896,6 @@
                 analysis += `✅ Хорошее/Отличное состояние (${goodSystems.length} систем):\n${goodSystems.map(s => '- ' + s).join('\n')}\n\n`;
             }
             
-            // Параметры для шаблона EmailJS
             const templateParams = {
                 name: personalInfo.name,
                 year: personalInfo.year,
@@ -794,23 +907,22 @@
                 total_checked: checkedQuestions.length,
                 total_problems: problemSystems.length,
                 total_satisfactory: satisfactorySystems.length,
-                total_good: goodSystems.length
+                total_good: goodSystems.length,
+                biological_age: biologicalAge,
+                chronological_age: chronologicalAge,
+                age_difference: ageDifference
             };
             
-            // Отправка через EmailJS
             return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
         }
         
-        // Показ сообщений пользователю
         function showMessage(type, text) {
             const successMsg = document.getElementById('successMessage');
             const errorMsg = document.getElementById('errorMessage');
             
-            // Скрыть все сообщения
             successMsg.style.display = 'none';
             errorMsg.style.display = 'none';
             
-            // Показать нужное сообщение
             if (type === 'success') {
                 successMsg.textContent = text;
                 successMsg.style.display = 'block';
@@ -819,24 +931,16 @@
                 errorMsg.style.display = 'block';
             }
             
-            // Прокрутить к сообщению
             document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         }
         
-        // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Инициализация теста здоровья...');
-            
-            // Заполнение годов рождения
             initializeDateSelectors();
-            
-            // Создание вопросов теста
             createQuestionnaire();
-            
             console.log('Тест готов к использованию!');
             console.log(`Создано ${questions.length} вопросов`);
         });
     </script>
 </body>
 </html>
-

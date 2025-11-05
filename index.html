@@ -696,10 +696,15 @@
                 }
             });
             
-            displayResults(systemScores);
+            // Рассчитываем биологический возраст ОДИН РАЗ
+            const chronologicalAge = calculateChronologicalAge();
+            const biologicalAge = calculateBiologicalAge(systemScores, chronologicalAge);
+            
+            // Передаем уже рассчитанный возраст
+            displayResults(systemScores, biologicalAge, chronologicalAge);
             
             try {
-                await sendResultsToEmail(systemScores);
+                await sendResultsToEmail(systemScores, biologicalAge, chronologicalAge);
                 showMessage('success', 'Результаты успешно обработаны! Теперь вы можете записаться на бесплатную консультацию.');
             } catch (error) {
                 console.error('Ошибка отправки:', error);
